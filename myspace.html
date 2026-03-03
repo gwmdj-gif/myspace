@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#f7f6f4">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="My Space">
+<title>My Space</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f6f4;
+  --bg2: #eeecea;
+  --bg3: #e5e3e0;
+  --card: #ffffff;
+  --border: #e0dedd;
+  --border2: #d0cecc;
+  --text: #1a1917;
+  --text2: #6b6966;
+  --text3: #a8a5a2;
+  --accent: #1a1917;
+  --accent-soft: #3d3b38;
+  --green: #5a7a5a;
+  --red: #c0504a;
+  --blue: #4a6a8a;
+  --yellow: #b8940a;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --font: 'DM Sans', 'Noto Sans JP', sans-serif;
+  --font-d: 'DM Serif Display', serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  min-height: 100vh; min-height: 100dvh;
+  overscroll-behavior: none;
+}
+
+/* ── NAV BAR ── */
+.nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding: 8px 0 calc(8px + var(--safe-b));
+  z-index: 50;
+}
+.nav-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  background: transparent; border: none; cursor: pointer;
+  padding: 6px 0; transition: all 0.2s;
+}
+.nav-icon { font-size: 20px; line-height: 1; }
+.nav-label { font-size: 9px; font-weight: 500; color: var(--text3); letter-spacing: 0.08em; font-family: var(--font); }
+.nav-btn.active .nav-label { color: var(--accent); font-weight: 600; }
+.nav-btn.active .nav-icon { transform: translateY(-1px); }
+
+/* ── PAGES ── */
+.page { display: none; min-height: 100vh; padding-bottom: calc(72px + var(--safe-b)); }
+.page.active { display: block; }
+
+/* ── HEADER ── */
+.page-header {
+  padding: 52px 22px 16px;
+  position: sticky; top: 0;
+  background: var(--bg);
+  z-index: 10;
+  border-bottom: 1px solid var(--border);
+}
+.page-date { font-size: 11px; color: var(--text3); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 4px; }
+.page-title { font-family: var(--font-d); font-size: 32px; font-weight: 400; color: var(--text); line-height: 1.1; }
+.page-sub { font-size: 12px; color: var(--text3); margin-top: 4px; }
+
+/* ── SECTION ── */
+.section { padding: 20px 22px 0; }
+.section-title {
+  font-size: 10px; font-weight: 600; color: var(--text3);
+  letter-spacing: 0.18em; text-transform: uppercase;
+  margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+}
+.section-title::after { content:''; flex:1; height:1px; background:var(--border); }
+
+/* ── CARDS ── */
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px;
+  margin-bottom: 10px;
+}
+
+/* ═══════════════════════════════════════════
+   TASKS PAGE
+═══════════════════════════════════════════ */
+.task-input-row {
+  display: flex; gap: 8px; margin-bottom: 6px;
+}
+.task-text-inp {
+  flex: 1; background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 11px 14px;
+  font-family: var(--font); font-size: 14px; font-weight: 500;
+  color: var(--text); outline: none; transition: border-color 0.2s;
+}
+.task-text-inp:focus { border-color: var(--accent); }
+.task-text-inp::placeholder { color: var(--text3); font-weight: 400; }
+.add-btn {
+  background: var(--accent); color: #fff; border: none;
+  border-radius: 10px; width: 42px; height: 42px;
+  font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.15s; flex-shrink: 0;
+}
+.add-btn:active { opacity: 0.7; }
+
+.tag-row { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+.tag-chip {
+  border: 1px solid var(--border2); border-radius: 6px;
+  padding: 4px 10px; font-size: 11px; font-weight: 500;
+  color: var(--text2); background: transparent; cursor: pointer;
+  transition: all 0.15s; letter-spacing: 0.04em;
+}
+.tag-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+.task-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 13px 0; border-bottom: 1px solid var(--border);
+  animation: fadeIn 0.25s ease;
+  transition: opacity 0.25s, transform 0.25s;
+}
+.task-item:last-child { border-bottom: none; }
+.task-item.removing { opacity: 0; transform: translateX(16px); }
+
+.task-cb {
+  width: 20px; height: 20px; border-radius: 50%;
+  border: 1.5px solid var(--border2); background: transparent;
+  cursor: pointer; flex-shrink: 0; margin-top: 1px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.task-cb.done { background: var(--accent); border-color: var(--accent); }
+.task-cb svg { display: none; }
+.task-cb.done svg { display: block; }
+
+.task-body { flex: 1; min-width: 0; }
+.task-txt { font-size: 14px; font-weight: 500; color: var(--text); line-height: 1.4; word-break: break-all; }
+.task-txt.done { color: var(--text3); text-decoration: line-through; font-weight: 400; }
+.task-tag { font-size: 11px; color: var(--text2); margin-top: 2px; letter-spacing: 0.06em; font-weight: 500; }
+.task-deadline { font-size: 10px; color: var(--text3); }
+.task-deadline.overdue { color: var(--red); }
+
+.task-del { background: transparent; border: none; color: var(--text3); cursor: pointer; font-size: 16px; padding: 2px 4px; }
+.task-del:active { color: var(--red); }
+
+.progress-summary {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px; background: var(--bg2);
+  border-radius: 10px; margin-bottom: 16px;
+}
+.progress-nums { font-family: var(--font-d); font-size: 28px; color: var(--text); line-height: 1; }
+.progress-nums span { font-size: 14px; font-family: var(--font); color: var(--text3); font-weight: 400; }
+.progress-bar-v { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.progress-bar-v .fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.5s cubic-bezier(.4,0,.2,1); }
+
+/* ═══════════════════════════════════════════
+   MEMO PAGE
+═══════════════════════════════════════════ */
+.memo-list { padding: 16px 22px; display: flex; flex-direction: column; gap: 10px; }
+.memo-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px; cursor: pointer;
+  transition: border-color 0.15s;
+  animation: fadeIn 0.25s ease;
+}
+.memo-card:active { border-color: var(--border2); background: var(--bg2); }
+.memo-card-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.memo-card-preview { font-size: 12px; color: var(--text3); line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.memo-card-date { font-size: 10px; color: var(--text3); margin-top: 8px; letter-spacing: 0.06em; }
+
+.memo-fab {
+  position: fixed; right: 22px; bottom: calc(80px + var(--safe-b));
+  width: 52px; height: 52px; background: var(--accent); color: #fff;
+  border: none; border-radius: 50%; font-size: 26px;
+  cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 20; transition: opacity 0.15s;
+}
+.memo-fab:active { opacity: 0.8; }
+
+/* Memo editor overlay */
+.memo-editor {
+  position: fixed; inset: 0; background: var(--bg);
+  z-index: 100; display: none; flex-direction: column;
+}
+.memo-editor.open { display: flex; }
+.memo-editor-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 52px 18px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.memo-back-btn {
+  background: transparent; border: none; font-size: 22px;
+  color: var(--text2); cursor: pointer; padding: 4px;
+}
+.memo-title-inp {
+  flex: 1; background: transparent; border: none;
+  font-family: var(--font-d); font-size: 22px; color: var(--text);
+  outline: none;
+}
+.memo-title-inp::placeholder { color: var(--text3); }
+.memo-del-btn {
+  background: transparent; border: none; color: var(--text3);
+  cursor: pointer; font-size: 16px; padding: 4px 8px;
+}
+.memo-body-inp {
+  flex: 1; background: transparent; border: none;
+  padding: 18px 22px; font-family: var(--font);
+  font-size: 15px; font-weight: 400; color: var(--text);
+  line-height: 1.8; outline: none; resize: none;
+}
+.memo-body-inp::placeholder { color: var(--text3); }
+.memo-save-btn {
+  margin: 0 22px 22px; background: var(--accent); color: #fff;
+  border: none; border-radius: 10px; padding: 14px;
+  font-family: var(--font); font-size: 14px; font-weight: 600;
+  cursor: pointer; letter-spacing: 0.08em;
+}
+.memo-save-btn:active { opacity: 0.8; }
+
+/* ═══════════════════════════════════════════
+   HABIT PAGE
+═══════════════════════════════════════════ */
+.habit-today {
+  font-size: 11px; color: var(--text3); letter-spacing: 0.12em;
+  text-align: center; margin-bottom: 16px;
+}
+.habit-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 16px; background: var(--card);
+  border: 1px solid var(--border); border-radius: 12px;
+  margin-bottom: 8px; cursor: pointer;
+  transition: all 0.2s;
+}
+.habit-item.checked { background: var(--accent); border-color: var(--accent); }
+.habit-icon { font-size: 20px; width: 32px; text-align: center; flex-shrink: 0; }
+.habit-info { flex: 1; }
+.habit-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.habit-item.checked .habit-name { color: #fff; }
+.habit-streak { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.habit-item.checked .habit-streak { color: rgba(255,255,255,0.7); }
+.habit-check { font-size: 18px; color: var(--text3); }
+.habit-item.checked .habit-check { color: #fff; }
+
+.habit-week-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  gap: 4px; margin-top: 8px;
+}
+.habit-week-day { text-align: center; }
+.habit-week-label { font-size: 9px; color: var(--text3); margin-bottom: 4px; font-weight: 500; }
+.habit-week-dot {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: var(--bg2); margin: 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+}
+.habit-week-dot.done { background: var(--accent); color: #fff; }
+.habit-week-dot.today { border: 1.5px solid var(--accent); }
+
+.add-habit-btn {
+  width: 100%; background: transparent; border: 1.5px dashed var(--border2);
+  border-radius: 12px; padding: 14px; font-family: var(--font);
+  font-size: 13px; font-weight: 500; color: var(--text3);
+  cursor: pointer; margin-top: 4px; transition: all 0.15s;
+}
+.add-habit-btn:active { border-color: var(--accent); color: var(--accent); }
+
+/* ═══════════════════════════════════════════
+   WEEKLY PLANNER PAGE
+═══════════════════════════════════════════ */
+.week-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 22px 12px;
+}
+.week-nav { background: transparent; border: none; font-size: 20px; color: var(--text2); cursor: pointer; padding: 4px 10px; }
+.week-range { font-size: 13px; font-weight: 600; color: var(--text); letter-spacing: 0.04em; }
+
+.week-days { display: flex; gap: 0; overflow-x: auto; padding: 0 22px 12px; scrollbar-width: none; }
+.week-days::-webkit-scrollbar { display: none; }
+.week-day-tab {
+  flex-shrink: 0; width: 48px; text-align: center;
+  padding: 8px 0; border-radius: 10px; cursor: pointer;
+  transition: all 0.15s; margin-right: 4px;
+}
+.week-day-tab.active { background: var(--accent); }
+.week-day-tab .wd-label { font-size: 10px; font-weight: 600; color: var(--text3); letter-spacing: 0.08em; }
+.week-day-tab.active .wd-label { color: rgba(255,255,255,0.7); }
+.week-day-tab .wd-num { font-size: 18px; font-weight: 600; color: var(--text); }
+.week-day-tab.active .wd-num { color: #fff; }
+.week-day-tab.today .wd-num { color: var(--accent); }
+.week-day-tab.today.active .wd-num { color: #fff; }
+.week-day-tab .wd-dot { width: 4px; height: 4px; border-radius: 50%; background: transparent; margin: 3px auto 0; }
+.week-day-tab .wd-dot.has-tasks { background: var(--text3); }
+.week-day-tab.active .wd-dot.has-tasks { background: rgba(255,255,255,0.6); }
+
+.plan-list { padding: 0 22px; }
+.plan-item {
+  display: flex; gap: 14px; padding: 13px 0;
+  border-bottom: 1px solid var(--border);
+  animation: fadeIn 0.2s ease;
+}
+.plan-item:last-child { border-bottom: none; }
+.plan-time { font-size: 11px; color: var(--text3); font-weight: 500; width: 40px; flex-shrink: 0; padding-top: 2px; letter-spacing: 0.04em; }
+.plan-content { flex: 1; }
+.plan-title-inp {
+  width: 100%; background: transparent; border: none;
+  font-family: var(--font); font-size: 14px; font-weight: 500;
+  color: var(--text); outline: none; padding: 0;
+}
+.plan-title-inp::placeholder { color: var(--text3); font-weight: 400; }
+.plan-add-row {
+  display: flex; gap: 8px; padding: 14px 0; align-items: center;
+}
+.plan-time-sel {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 10px;
+  font-family: var(--font); font-size: 12px; font-weight: 500;
+  color: var(--text); outline: none; width: 90px;
+}
+.plan-inp {
+  flex: 1; background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 12px;
+  font-family: var(--font); font-size: 13px; font-weight: 500;
+  color: var(--text); outline: none;
+}
+.plan-inp:focus { border-color: var(--accent); }
+.plan-inp::placeholder { color: var(--text3); font-weight: 400; }
+.plan-add-btn {
+  background: var(--accent); color: #fff; border: none;
+  border-radius: 8px; width: 36px; height: 36px;
+  font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ── OVERLAY SHEET ── */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 60; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+.overlay.show { opacity: 1; pointer-events: all; }
+.sheet {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--card); border-radius: 20px 20px 0 0;
+  padding: 18px 22px calc(32px + var(--safe-b));
+  z-index: 70; transform: translateY(100%);
+  transition: transform 0.32s cubic-bezier(.32,1,.4,1);
+}
+.sheet.show { transform: translateY(0); }
+.sheet-handle { width: 36px; height: 3px; background: var(--border2); border-radius: 2px; margin: 0 auto 18px; }
+.sheet-title { font-family: var(--font-d); font-size: 20px; color: var(--text); margin-bottom: 18px; }
+.sheet-inp {
+  width: 100%; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 14px; font-family: var(--font);
+  font-size: 14px; font-weight: 500; color: var(--text); outline: none;
+  margin-bottom: 12px; transition: border-color 0.2s;
+}
+.sheet-inp:focus { border-color: var(--accent); }
+.icon-pick-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+.icon-pick { width: 40px; height: 40px; border-radius: 10px; background: var(--bg2);
+  border: 1.5px solid transparent; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.icon-pick.active { border-color: var(--accent); background: var(--bg3); }
+.sheet-submit { width: 100%; background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 14px; font-family: var(--font); font-size: 14px; font-weight: 600; cursor: pointer; }
+.sheet-submit:active { opacity: 0.8; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: calc(80px + var(--safe-b) + 12px); left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--accent); color: #fff;
+  padding: 10px 20px; border-radius: 20px;
+  font-size: 13px; font-weight: 500;
+  z-index: 200; opacity: 0; transition: all 0.3s; white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+</style>
+</head>
+<body>
+
+<!-- ══ TASK PAGE ══ -->
+<div class="page active" id="page-task">
+  <div class="page-header">
+    <div class="page-date" id="task-date"></div>
+    <div class="page-title">Tasks</div>
+  </div>
+  <div class="section" style="padding-top:16px;">
+    <div class="progress-summary">
+      <div>
+        <div class="progress-nums"><span id="task-done">0</span> / <span id="task-total">0</span> <span>完了</span></div>
+      </div>
+      <div class="progress-bar-v"><div class="fill" id="task-prog" style="width:0%"></div></div>
+    </div>
+    <div class="task-input-row">
+      <input class="task-text-inp" id="task-inp" placeholder="新しいタスクを追加…">
+      <button class="add-btn" id="task-add-btn">+</button>
+    </div>
+    <div class="tag-row" id="task-tag-row">
+      <button class="tag-chip active" data-tag="all">すべて</button>
+      <button class="tag-chip" data-tag="仕事">仕事</button>
+      <button class="tag-chip" data-tag="個人">個人</button>
+      <button class="tag-chip" data-tag="買い物">買い物</button>
+      <button class="tag-chip" data-tag="勉強">勉強</button>
+      <button class="tag-chip" data-tag="家族">家族</button>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title">タスク一覧</div>
+    <div class="card" style="padding: 0 16px;" id="task-list">
+      <div style="text-align:center;padding:32px 0;color:var(--text3);font-size:13px;">タスクがありません</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MEMO PAGE ══ -->
+<div class="page" id="page-memo">
+  <div class="page-header">
+    <div class="page-date" id="memo-date"></div>
+    <div class="page-title">Memo</div>
+    <div class="page-sub" id="memo-count">0件のメモ</div>
+  </div>
+  <div class="memo-list" id="memo-list">
+    <div style="text-align:center;padding:48px 0;color:var(--text3);font-size:13px;">＋ボタンでメモを追加</div>
+  </div>
+  <button class="memo-fab" id="memo-fab">✎</button>
+</div>
+
+<!-- Memo Editor -->
+<div class="memo-editor" id="memo-editor">
+  <div class="memo-editor-header">
+    <button class="memo-back-btn" id="memo-back">←</button>
+    <input class="memo-title-inp" id="memo-title-inp" placeholder="タイトル…">
+    <button class="memo-del-btn" id="memo-del-btn">🗑</button>
+  </div>
+  <textarea class="memo-body-inp" id="memo-body-inp" placeholder="ここに書く…"></textarea>
+  <button class="memo-save-btn" id="memo-save-btn">保存する</button>
+</div>
+
+<!-- ══ HABIT PAGE ══ -->
+<div class="page" id="page-habit">
+  <div class="page-header">
+    <div class="page-date" id="habit-date"></div>
+    <div class="page-title">Habits</div>
+  </div>
+  <!-- 💊 MEDICATION -->
+  <div class="section" style="padding-top:16px; padding-bottom:4px;">
+    <div class="section-title">💊 お薬チェック</div>
+    <div id="med-groups"></div>
+    <button class="add-habit-btn" id="add-med-btn" style="margin-top:4px;">＋ お薬を追加・編集</button>
+    <div style="margin-top:10px;">
+      <textarea id="med-memo" placeholder="気になる症状・体調メモ（任意）…"
+        style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;
+               padding:11px 14px;font-family:var(--font);font-size:13px;color:var(--text);
+               outline:none;resize:none;line-height:1.6;" rows="2"
+        oninput="saveMedMemo()"></textarea>
+    </div>
+    <div style="margin-top:12px;" id="med-history"></div>
+  </div>
+
+  <div class="section" style="padding-top:16px;">
+    <div class="section-title">今日の習慣</div>
+    <div id="habit-list"></div>
+    <button class="add-habit-btn" id="add-habit-btn">＋ 習慣を追加</button>
+  </div>
+  <div class="section" style="padding-top:20px;">
+    <div class="section-title">今週の記録</div>
+    <div class="card" id="habit-week-card"></div>
+  </div>
+
+  <!-- WEIGHT SECTION -->
+  <div class="section" style="padding-top:20px; padding-bottom:16px;">
+    <div class="section-title">⚖ 体重記録</div>
+
+    <!-- Input -->
+    <div class="card" style="margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="flex:1;">
+          <div style="font-size:11px;color:var(--text3);letter-spacing:0.1em;margin-bottom:6px;">今日の体重</div>
+          <div style="display:flex;align-items:baseline;gap:6px;">
+            <input id="weight-inp" type="number" step="0.1" min="20" max="300"
+              style="width:90px;background:var(--bg);border:1px solid var(--border);border-radius:8px;
+                     padding:10px 12px;font-family:var(--font);font-size:20px;font-weight:600;
+                     color:var(--text);outline:none;-moz-appearance:textfield;"
+              placeholder="00.0">
+            <span style="font-size:14px;color:var(--text3);font-weight:500;">kg</span>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div id="weight-diff" style="font-size:12px;color:var(--text3);margin-bottom:8px;"></div>
+          <button onclick="logWeight()" style="background:var(--accent);color:#fff;border:none;border-radius:10px;
+            padding:10px 18px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;">記録する</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats row -->
+    <div id="weight-stats" style="display:none;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+        <div class="card" style="text-align:center;padding:12px 8px;">
+          <div style="font-size:10px;color:var(--text3);letter-spacing:0.1em;margin-bottom:4px;">最新</div>
+          <div id="w-latest" style="font-family:var(--font-d);font-size:20px;color:var(--text);"></div>
+          <div style="font-size:10px;color:var(--text3);">kg</div>
+        </div>
+        <div class="card" style="text-align:center;padding:12px 8px;">
+          <div style="font-size:10px;color:var(--text3);letter-spacing:0.1em;margin-bottom:4px;">最高</div>
+          <div id="w-max" style="font-family:var(--font-d);font-size:20px;color:var(--text);"></div>
+          <div style="font-size:10px;color:var(--text3);">kg</div>
+        </div>
+        <div class="card" style="text-align:center;padding:12px 8px;">
+          <div style="font-size:10px;color:var(--text3);letter-spacing:0.1em;margin-bottom:4px;">最低</div>
+          <div id="w-min" style="font-family:var(--font-d);font-size:20px;color:var(--text);"></div>
+          <div style="font-size:10px;color:var(--text3);">kg</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Graph period tabs -->
+    <div style="display:flex;gap:6px;margin-bottom:10px;" id="weight-period-tabs">
+      <button class="tag-chip active" data-period="7" onclick="setWeightPeriod(7,this)">7日</button>
+      <button class="tag-chip" data-period="30" onclick="setWeightPeriod(30,this)">30日</button>
+      <button class="tag-chip" data-period="90" onclick="setWeightPeriod(90,this)">3ヶ月</button>
+    </div>
+
+    <!-- Canvas graph -->
+    <div class="card" style="padding:16px 12px;">
+      <canvas id="weight-chart" style="width:100%;height:160px;display:block;"></canvas>
+      <div id="weight-empty" style="text-align:center;padding:32px 0;color:var(--text3);font-size:13px;display:none;">
+        まだ記録がありません
+      </div>
+    </div>
+
+    <!-- Log list -->
+    <div style="margin-top:12px;" id="weight-log-list"></div>
+  </div>
+</div>
+
+<!-- ══ WEEKLY PAGE ══ -->
+<div class="page" id="page-week">
+  <div class="page-header">
+    <div class="page-date" id="week-date"></div>
+    <div class="page-title">Planner</div>
+  </div>
+  <div class="week-header">
+    <button class="week-nav" id="week-prev">‹</button>
+    <div class="week-range" id="week-range"></div>
+    <button class="week-nav" id="week-next">›</button>
+  </div>
+  <div class="week-days" id="week-days"></div>
+  <div class="section-title" style="padding: 0 22px 10px;">スケジュール</div>
+  <div class="plan-list" id="plan-list"></div>
+  <div style="padding: 0 22px;">
+    <div class="plan-add-row">
+      <input type="time" class="plan-time-sel" id="plan-time" value="09:00">
+      <input class="plan-inp" id="plan-inp" placeholder="予定を入力…">
+      <button class="plan-add-btn" id="plan-add-btn">+</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ BOTTOM NAV ══ -->
+<nav class="nav">
+  <button class="nav-btn active" data-page="task">
+    <span class="nav-icon">☑</span>
+    <span class="nav-label">TASKS</span>
+  </button>
+  <button class="nav-btn" data-page="memo">
+    <span class="nav-icon">✎</span>
+    <span class="nav-label">MEMO</span>
+  </button>
+  <button class="nav-btn" data-page="habit">
+    <span class="nav-icon">◎</span>
+    <span class="nav-label">HABITS</span>
+  </button>
+  <button class="nav-btn" data-page="week">
+    <span class="nav-icon">▦</span>
+    <span class="nav-label">PLANNER</span>
+  </button>
+</nav>
+
+<!-- Overlay + Habit Sheet -->
+<div class="overlay" id="overlay"></div>
+<div class="sheet" id="habit-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">習慣を追加</div>
+  <input class="sheet-inp" id="habit-name-inp" placeholder="習慣の名前（例: 読書、運動）">
+  <div class="section-title" style="padding:0;margin-bottom:10px;">アイコン</div>
+  <div class="icon-pick-row" id="icon-pick-row">
+    📚 📖 🏃 💪 🧘 🥗 💊 🌿 ☕ 🛏 🎵 ✍ 🧹 💧 🌸
+    .split('').filter(c=>c.trim())
+  </div>
+  <button class="sheet-submit" id="habit-add-submit">追加する</button>
+</div>
+
+<!-- 💊 Med Sheet -->
+<div class="sheet" id="med-sheet" style="max-height:85vh;overflow-y:auto;">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">💊 お薬を登録</div>
+
+  <div style="font-size:10px;color:var(--text3);letter-spacing:0.15em;margin-bottom:8px;">薬の名前</div>
+  <input class="sheet-inp" id="med-name-inp" placeholder="例: コンサータ、サインバルタ">
+
+  <div style="font-size:10px;color:var(--text3);letter-spacing:0.15em;margin-bottom:8px;">用量・メモ</div>
+  <input class="sheet-inp" id="med-dose-inp" placeholder="例: 18mg、食後">
+
+  <div style="font-size:10px;color:var(--text3);letter-spacing:0.15em;margin-bottom:8px;">タイミング</div>
+  <div class="option-row" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;" id="med-timing-row">
+    <button class="tag-chip active" data-timing="起床時">起床時</button>
+    <button class="tag-chip" data-timing="30分後">30分後</button>
+    <button class="tag-chip" data-timing="朝食後">朝食後</button>
+    <button class="tag-chip" data-timing="昼食後">昼食後</button>
+    <button class="tag-chip" data-timing="夕食後">夕食後</button>
+    <button class="tag-chip" data-timing="就寝前">就寝前</button>
+  </div>
+
+  <button class="sheet-submit" id="med-add-submit">登録する</button>
+
+  <!-- Registered list -->
+  <div id="med-registered" style="margin-top:20px;"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── UTILS ──────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2);
+const load = k => JSON.parse(localStorage.getItem(k) || 'null');
+const save = (k,v) => localStorage.setItem(k, JSON.stringify(v));
+const DAYS_JP = ['日','月','火','水','木','金','土'];
+const DAYS_EN = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+
+function fmtDate(d){ return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${DAYS_JP[d.getDay()]}）`; }
+function fmtKey(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
+
+const now = new Date();
+['task-date','memo-date','habit-date','week-date'].forEach(id=>{ const el=$(id); if(el) el.textContent=fmtDate(now); });
+
+// ── NAV ────────────────────────────────────────────
+document.querySelectorAll('.nav-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    $('page-'+btn.dataset.page).classList.add('active');
+    if(btn.dataset.page==='week') renderWeek();
+    if(btn.dataset.page==='habit') { renderHabits(); renderMedGroups(); }
+    if(btn.dataset.page==='memo') renderMemos();
+    if(btn.dataset.page==='task') renderTasks();
+  });
+});
+
+// ═══════════════════════════════
+// TASKS
+// ═══════════════════════════════
+let tasks = load('ms_tasks') || [];
+let taskFilter = 'all';
+let taskTag = 'all';
+
+function saveTasks(){ save('ms_tasks', tasks); }
+
+function renderTasks(){
+  const filtered = taskTag==='all' ? tasks : tasks.filter(t=>t.tag===taskTag);
+  const done = filtered.filter(t=>t.done).length;
+  const total = filtered.length;
+  $('task-done').textContent = done;
+  $('task-total').textContent = total;
+  $('task-prog').style.width = total ? `${done/total*100}%` : '0%';
+
+  const list = $('task-list');
+  if(!filtered.length){ list.innerHTML='<div style="text-align:center;padding:32px 0;color:var(--text3);font-size:13px;">タスクがありません</div>'; return; }
+  const sorted = [...filtered].sort((a,b)=>a.done-b.done||b.createdAt-a.createdAt);
+  list.innerHTML = sorted.map(t=>`
+    <div class="task-item ${t._rm?'removing':''}" id="ti-${t.id}">
+      <div class="task-cb ${t.done?'done':''}" onclick="toggleTask('${t.id}')">
+        <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+          <path d="M1 4L3.5 6.5L9 1" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="task-body">
+        <div class="task-txt ${t.done?'done':''}">${esc(t.text)}</div>
+        <div class="task-tag">${t.tag||''}</div>
+      </div>
+      <button class="task-del" onclick="deleteTask('${t.id}')">×</button>
+    </div>`).join('');
+}
+
+function toggleTask(id){ const t=tasks.find(x=>x.id===id); if(t){t.done=!t.done;saveTasks();renderTasks();} }
+function deleteTask(id){
+  const el=$('ti-'+id); if(el){ el.classList.add('removing');
+  setTimeout(()=>{ tasks=tasks.filter(x=>x.id!==id); saveTasks(); renderTasks(); },250); }
+}
+
+$('task-add-btn').onclick = () => {
+  const val=$('task-inp').value.trim(); if(!val) return;
+  tasks.unshift({id:uid(),text:val,tag:taskTag==='all'?'個人':taskTag,done:false,createdAt:Date.now()});
+  saveTasks(); $('task-inp').value=''; renderTasks(); toast('タスクを追加しました');
+};
+$('task-inp').addEventListener('keydown',e=>{ if(e.key==='Enter') $('task-add-btn').click(); });
+
+$('task-tag-row').addEventListener('click',e=>{
+  const btn=e.target.closest('.tag-chip'); if(!btn) return;
+  document.querySelectorAll('.tag-chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); taskTag=btn.dataset.tag; renderTasks();
+});
+
+// ═══════════════════════════════
+// MEMO
+// ═══════════════════════════════
+let memos = load('ms_memos') || [];
+let editingMemoId = null;
+
+function saveMemos(){ save('ms_memos',memos); }
+
+function renderMemos(){
+  const list=$('memo-list');
+  $('memo-count').textContent=`${memos.length}件のメモ`;
+  if(!memos.length){ list.innerHTML='<div style="text-align:center;padding:48px 0;color:var(--text3);font-size:13px;">＋ボタンでメモを追加</div>'; return; }
+  const sorted=[...memos].sort((a,b)=>b.updatedAt-a.updatedAt);
+  list.innerHTML=sorted.map(m=>`
+    <div class="memo-card" onclick="openMemo('${m.id}')">
+      <div class="memo-card-title">${esc(m.title||'無題')}</div>
+      <div class="memo-card-preview">${esc(m.body||'')}</div>
+      <div class="memo-card-date">${fmtDate(new Date(m.updatedAt))}</div>
+    </div>`).join('');
+}
+
+function openMemo(id){
+  editingMemoId = id||null;
+  const m = id ? memos.find(x=>x.id===id) : null;
+  $('memo-title-inp').value = m ? m.title : '';
+  $('memo-body-inp').value = m ? m.body : '';
+  $('memo-editor').classList.add('open');
+  setTimeout(()=>$('memo-body-inp').focus(),300);
+}
+
+$('memo-fab').onclick = ()=>openMemo(null);
+$('memo-back').onclick = ()=>$('memo-editor').classList.remove('open');
+
+$('memo-save-btn').onclick = ()=>{
+  const title=$('memo-title-inp').value.trim()||'無題';
+  const body=$('memo-body-inp').value.trim();
+  if(!body&&!title) return;
+  if(editingMemoId){
+    const m=memos.find(x=>x.id===editingMemoId); if(m){m.title=title;m.body=body;m.updatedAt=Date.now();}
+  } else {
+    memos.unshift({id:uid(),title,body,createdAt:Date.now(),updatedAt:Date.now()});
+  }
+  saveMemos(); renderMemos(); $('memo-editor').classList.remove('open'); toast('保存しました');
+};
+
+$('memo-del-btn').onclick = ()=>{
+  if(!editingMemoId) return;
+  memos=memos.filter(x=>x.id!==editingMemoId);
+  saveMemos(); renderMemos(); $('memo-editor').classList.remove('open'); toast('削除しました');
+};
+
+// ═══════════════════════════════
+// HABITS
+// ═══════════════════════════════
+const HABIT_ICONS=['📚','📖','🏃','💪','🧘','🥗','💊','🌿','☕','🛏','🎵','✍','🧹','💧','🌸'];
+let habits = load('ms_habits') || [
+  {id:'h1',name:'水を飲む',icon:'💧',streak:0},
+  {id:'h2',name:'読書',icon:'📚',streak:0},
+  {id:'h3',name:'運動',icon:'🏃',streak:0},
+];
+let habitLog = load('ms_habit_log') || {}; // {date: {habitId: bool}}
+let selectedIcon = '⭐';
+
+function saveHabits(){ save('ms_habits',habits); save('ms_habit_log',habitLog); }
+function todayKey(){ return fmtKey(new Date()); }
+
+function renderHabits(){
+  const today=todayKey();
+  const log=habitLog[today]||{};
+  const list=$('habit-list');
+  list.innerHTML=habits.map(h=>`
+    <div class="habit-item ${log[h.id]?'checked':''}" onclick="toggleHabit('${h.id}')">
+      <div class="habit-icon">${h.icon}</div>
+      <div class="habit-info">
+        <div class="habit-name">${esc(h.name)}</div>
+        <div class="habit-streak">🔥 ${h.streak}日連続</div>
+      </div>
+      <div class="habit-check">${log[h.id]?'✓':'○'}</div>
+    </div>`).join('');
+
+  // Week grid
+  const weekCard=$('habit-week-card');
+  const days=['日','月','火','水','木','金','土'];
+  const todayD=new Date();
+  weekCard.innerHTML=`<div class="habit-week-grid">`+
+    [...Array(7)].map((_,i)=>{
+      const d=new Date(todayD); d.setDate(d.getDate()-todayD.getDay()+i);
+      const key=fmtKey(d); const isToday=key===today;
+      const dayLog=habitLog[key]||{};
+      const doneCount=habits.filter(h=>dayLog[h.id]).length;
+      return `<div class="habit-week-day">
+        <div class="habit-week-label">${days[i]}</div>
+        <div class="habit-week-dot ${isToday?'today':''} ${doneCount>0?'done':''}">${doneCount>0?'✓':d.getDate()}</div>
+      </div>`;
+    }).join('')+`</div>`;
+}
+
+function toggleHabit(id){
+  const today=todayKey();
+  if(!habitLog[today]) habitLog[today]={};
+  const prev=habitLog[today][id];
+  habitLog[today][id]=!prev;
+  const h=habits.find(x=>x.id===id);
+  if(h) h.streak=!prev?h.streak+1:Math.max(0,h.streak-1);
+  saveHabits(); renderHabits();
+}
+
+// Habit sheet
+$('add-habit-btn').onclick=()=>{
+  // Build icon row
+  const row=$('icon-pick-row');
+  row.innerHTML=HABIT_ICONS.map(ic=>`<div class="icon-pick ${ic===selectedIcon?'active':''}" onclick="pickIcon('${ic}')">${ic}</div>`).join('');
+  $('habit-name-inp').value='';
+  $('overlay').classList.add('show');
+  $('habit-sheet').classList.add('show');
+  setTimeout(()=>$('habit-name-inp').focus(),350);
+};
+
+window.pickIcon=function(ic){
+  selectedIcon=ic;
+  document.querySelectorAll('.icon-pick').forEach(el=>el.classList.toggle('active',el.textContent===ic));
+};
+
+$('habit-add-submit').onclick=()=>{
+  const name=$('habit-name-inp').value.trim(); if(!name) return;
+  habits.push({id:uid(),name,icon:selectedIcon,streak:0});
+  saveHabits(); renderHabits(); closeSheet(); toast('習慣を追加しました');
+};
+
+function closeSheet(){
+  $('overlay').classList.remove('show');
+  document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('show'));
+}
+$('overlay').onclick=closeSheet;
+
+// ═══════════════════════════════
+// WEEKLY PLANNER
+// ═══════════════════════════════
+let weekOffset=0;
+let selectedWeekDay=new Date().getDay();
+let plans=load('ms_plans')||{}; // {dateKey: [{id,time,title}]}
+
+function getWeekStart(offset){
+  const d=new Date(); d.setDate(d.getDate()-d.getDay()+offset*7);
+  d.setHours(0,0,0,0); return d;
+}
+
+function renderWeek(){
+  const ws=getWeekStart(weekOffset);
+  const we=new Date(ws); we.setDate(we.getDate()+6);
+  $('week-range').textContent=`${ws.getMonth()+1}/${ws.getDate()} — ${we.getMonth()+1}/${we.getDate()}`;
+
+  const daysEl=$('week-days');
+  const todayKey2=fmtKey(new Date());
+  daysEl.innerHTML=[...Array(7)].map((_,i)=>{
+    const d=new Date(ws); d.setDate(d.getDate()+i);
+    const key=fmtKey(d); const isToday=key===todayKey2;
+    const isSelected=i===selectedWeekDay;
+    const hasTasks=(plans[key]||[]).length>0;
+    return `<div class="week-day-tab ${isSelected?'active':''} ${isToday?'today':''}" onclick="selectWeekDay(${i})">
+      <div class="wd-label">${DAYS_EN[i]}</div>
+      <div class="wd-num">${d.getDate()}</div>
+      <div class="wd-dot ${hasTasks?'has-tasks':''}"></div>
+    </div>`;
+  }).join('');
+
+  renderDayPlan();
+}
+
+window.selectWeekDay=function(i){
+  selectedWeekDay=i; renderWeek();
+};
+
+function renderDayPlan(){
+  const ws=getWeekStart(weekOffset);
+  const d=new Date(ws); d.setDate(d.getDate()+selectedWeekDay);
+  const key=fmtKey(d);
+  const dayPlans=(plans[key]||[]).sort((a,b)=>a.time.localeCompare(b.time));
+  const list=$('plan-list');
+  if(!dayPlans.length){
+    list.innerHTML='<div style="padding:24px 0;color:var(--text3);font-size:13px;text-align:center;">予定なし</div>'; return;
+  }
+  list.innerHTML=dayPlans.map(p=>`
+    <div class="plan-item" id="pl-${p.id}">
+      <div class="plan-time">${p.time}</div>
+      <div class="plan-content">
+        <input class="plan-title-inp" value="${esc(p.title)}" onchange="updatePlan('${key}','${p.id}',this.value)">
+      </div>
+      <button class="task-del" onclick="deletePlan('${key}','${p.id}')">×</button>
+    </div>`).join('');
+}
+
+window.updatePlan=function(key,id,val){
+  const p=(plans[key]||[]).find(x=>x.id===id); if(p){p.title=val; save('ms_plans',plans);}
+};
+window.deletePlan=function(key,id){
+  plans[key]=(plans[key]||[]).filter(x=>x.id!==id);
+  save('ms_plans',plans); renderWeek();
+};
+
+$('plan-add-btn').onclick=()=>{
+  const title=$('plan-inp').value.trim(); if(!title) return;
+  const ws=getWeekStart(weekOffset);
+  const d=new Date(ws); d.setDate(d.getDate()+selectedWeekDay);
+  const key=fmtKey(d);
+  if(!plans[key]) plans[key]=[];
+  plans[key].push({id:uid(),time:$('plan-time').value,title});
+  save('ms_plans',plans); $('plan-inp').value=''; renderWeek(); toast('予定を追加しました');
+};
+$('plan-inp').addEventListener('keydown',e=>{ if(e.key==='Enter') $('plan-add-btn').click(); });
+
+$('week-prev').onclick=()=>{ weekOffset--; renderWeek(); };
+$('week-next').onclick=()=>{ weekOffset++; renderWeek(); };
+
+// ═══════════════════════════════
+// WEIGHT TRACKER
+// ═══════════════════════════════
+let weightLog = load('ms_weight') || []; // [{date, kg}]
+let weightPeriod = 7;
+
+function saveWeight(){ save('ms_weight', weightLog); }
+
+function logWeight(){
+  const val = parseFloat($('weight-inp').value);
+  if(isNaN(val)||val<20||val>300){ toast('正しい体重を入力してください'); return; }
+  const today = fmtKey(new Date());
+  const existing = weightLog.findIndex(x=>x.date===today);
+  if(existing>=0) weightLog[existing].kg=val;
+  else weightLog.push({date:today, kg:val});
+  weightLog.sort((a,b)=>a.date.localeCompare(b.date));
+  saveWeight();
+  $('weight-inp').value='';
+  renderWeightChart();
+  toast('体重を記録しました ⚖');
+}
+
+function setWeightPeriod(p, btn){
+  weightPeriod=p;
+  document.querySelectorAll('#weight-period-tabs .tag-chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderWeightChart();
+}
+
+function renderWeightChart(){
+  const canvas=$('weight-chart');
+  const empty=$('weight-empty');
+  const stats=$('weight-stats');
+
+  // Filter by period
+  const cutoff=new Date(); cutoff.setDate(cutoff.getDate()-weightPeriod);
+  const cutoffKey=fmtKey(cutoff);
+  const data=weightLog.filter(x=>x.date>=cutoffKey);
+
+  if(!data.length){
+    canvas.style.display='none'; empty.style.display='block'; stats.style.display='none';
+    $('weight-diff').textContent='';
+    return;
+  }
+  canvas.style.display='block'; empty.style.display='none'; stats.style.display='block';
+
+  // Stats
+  const kgs=data.map(x=>x.kg);
+  const latest=kgs[kgs.length-1];
+  const prev=kgs.length>1?kgs[kgs.length-2]:null;
+  $('w-latest').textContent=latest.toFixed(1);
+  $('w-max').textContent=Math.max(...kgs).toFixed(1);
+  $('w-min').textContent=Math.min(...kgs).toFixed(1);
+
+  if(prev!==null){
+    const diff=(latest-prev).toFixed(1);
+    const sign=diff>0?'+':'';
+    const color=diff>0?'var(--red)':'var(--green)';
+    $('weight-diff').innerHTML=`<span style="color:${color};font-weight:600;">${sign}${diff} kg</span> <span style="color:var(--text3);">前回比</span>`;
+  } else {
+    $('weight-diff').textContent='';
+  }
+
+  // Draw chart
+  const dpr=window.devicePixelRatio||1;
+  const rect=canvas.getBoundingClientRect();
+  const W=rect.width||canvas.offsetWidth||300;
+  const H=160;
+  canvas.width=W*dpr; canvas.height=H*dpr;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+
+  const pad={top:20,right:16,bottom:28,left:44};
+  const cw=W-pad.left-pad.right;
+  const ch=H-pad.top-pad.bottom;
+
+  const minKg=Math.min(...kgs)-1;
+  const maxKg=Math.max(...kgs)+1;
+  const range=maxKg-minKg||1;
+
+  const toX=i=>pad.left+(i/(data.length-1||1))*cw;
+  const toY=kg=>pad.top+ch-(kg-minKg)/range*ch;
+
+  // Grid lines
+  ctx.strokeStyle='#e5e3e0'; ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){
+    const y=pad.top+ch/4*i;
+    ctx.beginPath(); ctx.moveTo(pad.left,y); ctx.lineTo(pad.left+cw,y); ctx.stroke();
+    const val=(maxKg-(range/4*i)).toFixed(1);
+    ctx.fillStyle='#a8a5a2'; ctx.font='10px DM Sans,sans-serif';
+    ctx.textAlign='right'; ctx.fillText(val+'kg',pad.left-4,y+4);
+  }
+
+  // Gradient fill
+  const grad=ctx.createLinearGradient(0,pad.top,0,pad.top+ch);
+  grad.addColorStop(0,'rgba(26,25,23,0.12)');
+  grad.addColorStop(1,'rgba(26,25,23,0)');
+  ctx.beginPath();
+  data.forEach((d,i)=>{ i===0?ctx.moveTo(toX(i),toY(d.kg)):ctx.lineTo(toX(i),toY(d.kg)); });
+  ctx.lineTo(toX(data.length-1),pad.top+ch);
+  ctx.lineTo(toX(0),pad.top+ch);
+  ctx.closePath(); ctx.fillStyle=grad; ctx.fill();
+
+  // Line
+  ctx.beginPath(); ctx.strokeStyle='#1a1917'; ctx.lineWidth=2; ctx.lineJoin='round'; ctx.lineCap='round';
+  data.forEach((d,i)=>{ i===0?ctx.moveTo(toX(i),toY(d.kg)):ctx.lineTo(toX(i),toY(d.kg)); });
+  ctx.stroke();
+
+  // Dots
+  data.forEach((d,i)=>{
+    ctx.beginPath(); ctx.arc(toX(i),toY(d.kg),4,0,Math.PI*2);
+    ctx.fillStyle='#fff'; ctx.fill();
+    ctx.strokeStyle='#1a1917'; ctx.lineWidth=2; ctx.stroke();
+  });
+
+  // X axis labels — show a few dates
+  ctx.fillStyle='#a8a5a2'; ctx.font='9px DM Sans,sans-serif'; ctx.textAlign='center';
+  const step=Math.max(1,Math.floor(data.length/4));
+  data.forEach((d,i)=>{
+    if(i===0||i===data.length-1||i%step===0){
+      const parts=d.date.split('-');
+      ctx.fillText(`${parts[1]}/${parts[2]}`,toX(i),H-6);
+    }
+  });
+
+  // Recent log list (last 7 entries)
+  const logEl=$('weight-log-list');
+  const recent=[...weightLog].reverse().slice(0,7);
+  logEl.innerHTML=recent.map(r=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;
+      padding:10px 14px;background:var(--card);border:1px solid var(--border);
+      border-radius:10px;margin-bottom:6px;">
+      <span style="font-size:12px;color:var(--text3);">${r.date.replace(/-/g,'/')}</span>
+      <span style="font-size:16px;font-weight:600;font-family:var(--font-d);">${r.kg.toFixed(1)} <span style="font-size:12px;font-weight:400;color:var(--text3);">kg</span></span>
+      <button onclick="deleteWeight('${r.date}')" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:15px;">×</button>
+    </div>`).join('');
+}
+
+window.deleteWeight=function(date){
+  weightLog=weightLog.filter(x=>x.date!==date);
+  saveWeight(); renderWeightChart(); toast('削除しました');
+};
+
+// ═══════════════════════════════
+// MEDICATION TRACKER
+// ═══════════════════════════════
+let meds = load('ms_meds') || [
+  {id:'m1', name:'コンサータ', dose:'', timing:'起床時'},
+  {id:'m2', name:'サインバルタ', dose:'', timing:'30分後'},
+  {id:'m3', name:'レキサルティ', dose:'', timing:'30分後'},
+];
+let medLog = load('ms_med_log') || {}; // {date: {medId: bool}}
+let medMemos = load('ms_med_memos') || {}; // {date: string}
+let selectedMedTiming = '起床時';
+
+function saveMeds(){ save('ms_meds', meds); save('ms_med_log', medLog); }
+
+const TIMING_ORDER = ['起床時','30分後','朝食後','昼食後','夕食後','就寝前'];
+
+function renderMedGroups(){
+  const today = fmtKey(new Date());
+  const log = medLog[today] || {};
+  const el = $('med-groups');
+  if(!meds.length){ el.innerHTML='<div style="color:var(--text3);font-size:13px;padding:8px 0;">お薬を追加してください</div>'; return; }
+
+  // Group by timing
+  const groups = {};
+  TIMING_ORDER.forEach(t=>{ groups[t]=[]; });
+  meds.forEach(m=>{ if(!groups[m.timing]) groups[m.timing]=[]; groups[m.timing].push(m); });
+
+  let html = '';
+  TIMING_ORDER.forEach(timing=>{
+    const group = groups[timing];
+    if(!group||!group.length) return;
+    const allDone = group.every(m=>log[m.id]);
+    html += `<div style="margin-bottom:10px;">
+      <div style="font-size:10px;font-weight:600;color:var(--text3);letter-spacing:0.15em;
+                  text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:6px;">
+        ${timing}
+        ${allDone ? '<span style="color:var(--green);font-size:11px;">✓ 完了</span>' : ''}
+      </div>`;
+    group.forEach(m=>{
+      const done = !!log[m.id];
+      html += `<div onclick="toggleMed('${m.id}')"
+        style="display:flex;align-items:center;gap:14px;
+               padding:16px;margin-bottom:4px;border-radius:12px;cursor:pointer;
+               background:${done?'var(--accent)':'var(--card)'};
+               border:1px solid ${done?'var(--accent)':'var(--border)'};
+               transition:all 0.2s;">
+        <div style="font-size:24px;">💊</div>
+        <div style="flex:1;">
+          <div style="font-size:16px;font-weight:700;color:${done?'#fff':'var(--text)'};">${esc(m.name)}</div>
+          ${m.dose?`<div style="font-size:12px;color:${done?'rgba(255,255,255,0.7)':'var(--text3)'};">${esc(m.dose)}</div>`:''}
+        </div>
+        <div style="font-size:22px;">${done?'✓':'○'}</div>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  el.innerHTML = html;
+
+  // memo
+  const memoEl = $('med-memo');
+  if(memoEl) memoEl.value = medMemos[today]||'';
+
+  // History (last 5 days)
+  renderMedHistory();
+}
+
+window.toggleMed = function(id){
+  const today = fmtKey(new Date());
+  if(!medLog[today]) medLog[today]={};
+  medLog[today][id] = !medLog[today][id];
+  saveMeds(); renderMedGroups();
+};
+
+window.saveMedMemo = function(){
+  const today = fmtKey(new Date());
+  medMemos[today] = $('med-memo').value;
+  save('ms_med_memos', medMemos);
+};
+
+function renderMedHistory(){
+  const el = $('med-history'); if(!el) return;
+  const days = [];
+  for(let i=1;i<=5;i++){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const key=fmtKey(d);
+    const log=medLog[key]||{};
+    const taken=meds.filter(m=>log[m.id]).length;
+    const total=meds.length;
+    if(total===0) continue;
+    const memo=medMemos[key]||'';
+    days.push({key,d,taken,total,memo});
+  }
+  if(!days.length){ el.innerHTML=''; return; }
+  el.innerHTML = `<div style="font-size:10px;color:var(--text3);letter-spacing:0.15em;margin-bottom:8px;">過去の記録</div>`+
+    days.map(({key,d,taken,total,memo})=>`
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;
+                padding:12px 14px;margin-bottom:6px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:12px;color:var(--text2);font-weight:600;">${d.getMonth()+1}/${d.getDate()}（${DAYS_JP[d.getDay()]}）</span>
+        <span style="font-size:12px;font-weight:700;color:${taken===total?'var(--green)':'var(--text3)'};">
+          ${taken}/${total} 服薬
+        </span>
+      </div>
+      ${memo?`<div style="font-size:11px;color:var(--text3);margin-top:4px;">${esc(memo)}</div>`:''}
+    </div>`).join('');
+}
+
+// Med sheet
+$('add-med-btn').onclick = ()=>{
+  $('med-name-inp').value='';
+  $('med-dose-inp').value='';
+  selectedMedTiming='起床時';
+  document.querySelectorAll('#med-timing-row .tag-chip').forEach(b=>b.classList.toggle('active',b.dataset.timing==='起床時'));
+  renderMedRegistered();
+  $('overlay').classList.add('show');
+  $('med-sheet').classList.add('show');
+  setTimeout(()=>$('med-name-inp').focus(),350);
+};
+
+document.querySelectorAll('#med-timing-row .tag-chip').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('#med-timing-row .tag-chip').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active'); selectedMedTiming=btn.dataset.timing;
+  });
+});
+
+$('med-add-submit').onclick=()=>{
+  const name=$('med-name-inp').value.trim(); if(!name) return;
+  const dose=$('med-dose-inp').value.trim();
+  meds.push({id:uid(),name,dose,timing:selectedMedTiming});
+  saveMeds(); renderMedGroups(); renderMedRegistered();
+  $('med-name-inp').value=''; $('med-dose-inp').value='';
+  toast('お薬を登録しました 💊');
+};
+
+function renderMedRegistered(){
+  const el=$('med-registered'); if(!el) return;
+  if(!meds.length){ el.innerHTML=''; return; }
+  el.innerHTML='<div style="font-size:10px;color:var(--text3);letter-spacing:0.15em;margin-bottom:8px;">登録済みのお薬</div>'+
+    meds.map(m=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;
+                background:var(--bg);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;">
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:600;">${esc(m.name)}</div>
+        <div style="font-size:11px;color:var(--text3);">${m.timing}${m.dose?' · '+esc(m.dose):''}</div>
+      </div>
+      <button onclick="deleteMed('${m.id}')" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:16px;">×</button>
+    </div>`).join('');
+}
+
+window.deleteMed=function(id){
+  meds=meds.filter(m=>m.id!==id); saveMeds(); renderMedGroups(); renderMedRegistered(); toast('削除しました');
+};
+
+// ── INIT ───────────────────────────────────────────
+renderTasks();
+renderMemos();
+renderHabits();
+renderWeek();
+renderWeightChart();
+renderMedGroups();
+</script>
+</body>
+</html>
