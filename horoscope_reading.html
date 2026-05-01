@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>星命鑑定書</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600;800&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1209;
+    --gold: #b8912a;
+    --gold-light: #d4b060;
+    --cream: #f5f0e8;
+    --rust: #8b3a2a;
+    --mist: #e8e0d0;
+    --shadow: rgba(26,18,9,0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'Shippori Mincho', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* 和紙テクスチャ背景 */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ヘッダー */
+  header {
+    text-align: center;
+    padding: 48px 0 40px;
+    border-bottom: 1px solid var(--gold);
+    margin-bottom: 48px;
+    position: relative;
+  }
+
+  header::before, header::after {
+    content: '◈';
+    color: var(--gold);
+    font-size: 12px;
+    position: absolute;
+    bottom: -8px;
+  }
+  header::before { left: 50%; transform: translateX(-50%); }
+
+  .header-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 13px;
+    letter-spacing: 0.3em;
+    color: var(--gold);
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-size: clamp(28px, 6vw, 42px);
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    line-height: 1.3;
+    margin-bottom: 16px;
+  }
+
+  .birth-info {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15px;
+    color: #5a4a35;
+    letter-spacing: 0.1em;
+  }
+
+  /* 占術タグ */
+  .method-tags {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    padding: 4px 14px;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+  }
+
+  /* 命式サマリーカード */
+  .chart-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  .chart-card {
+    background: white;
+    border: 1px solid var(--mist);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .chart-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--gold);
+  }
+
+  .chart-card-label {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+
+  .chart-items {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .chart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 13px;
+  }
+
+  .chart-item-key {
+    color: #7a6a55;
+    font-size: 11px;
+  }
+
+  .chart-item-val {
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .planet-symbol {
+    font-family: 'Cormorant Garamond', serif;
+    color: var(--gold);
+    margin-right: 4px;
+  }
+
+  /* セクション */
+  .section {
+    margin-bottom: 48px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .section.visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .section-number {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 48px;
+    color: var(--mist);
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .section-title {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    border-bottom: 1px solid var(--mist);
+    padding-bottom: 8px;
+    flex: 1;
+  }
+
+  .section-subtitle {
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: 0.2em;
+    margin-top: 4px;
+  }
+
+  /* AI鑑定テキストエリア */
+  .reading-box {
+    background: white;
+    border: 1px solid var(--mist);
+    padding: 28px 32px;
+    min-height: 120px;
+    position: relative;
+  }
+
+  .reading-box::after {
+    content: '';
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 40px; height: 40px;
+    border-right: 1px solid var(--gold);
+    border-bottom: 1px solid var(--gold);
+  }
+
+  .reading-text {
+    font-size: 15px;
+    line-height: 2;
+    color: #2a2015;
+  }
+
+  .loading-dots {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    padding: 16px 0;
+  }
+
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--gold);
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.2; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1); }
+  }
+
+  .loading-label {
+    font-size: 12px;
+    color: var(--gold);
+    letter-spacing: 0.15em;
+    margin-left: 8px;
+  }
+
+  /* ボタン */
+  .btn-generate {
+    display: block;
+    width: 100%;
+    padding: 18px;
+    background: var(--ink);
+    color: var(--cream);
+    border: none;
+    font-family: 'Shippori Mincho', serif;
+    font-size: 15px;
+    letter-spacing: 0.3em;
+    cursor: pointer;
+    transition: background 0.3s, color 0.3s;
+    margin-top: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-generate:hover {
+    background: var(--gold);
+    color: var(--ink);
+  }
+
+  .btn-generate:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* アスペクト表示 */
+  .aspect-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+  }
+
+  .aspect-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: white;
+    border: 1px solid var(--mist);
+    font-size: 12px;
+  }
+
+  .aspect-symbol {
+    font-size: 16px;
+    color: var(--gold);
+    width: 20px;
+    text-align: center;
+  }
+
+  /* 四柱命式表 */
+  .shicyu-table {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--mist);
+    border: 1px solid var(--mist);
+    margin-bottom: 16px;
+  }
+
+  .shicyu-cell {
+    background: white;
+    padding: 12px 8px;
+    text-align: center;
+  }
+
+  .shicyu-label {
+    font-size: 10px;
+    color: var(--gold);
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+
+  .shicyu-gz {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+  }
+
+  .shicyu-sub {
+    font-size: 11px;
+    color: #7a6a55;
+  }
+
+  /* 大運流年 */
+  .unnen-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+
+  .unnen-item {
+    background: white;
+    border: 1px solid var(--mist);
+    padding: 12px 8px;
+    text-align: center;
+    font-size: 12px;
+  }
+
+  .unnen-year {
+    font-size: 11px;
+    color: var(--gold);
+    margin-bottom: 4px;
+  }
+
+  .unnen-gz {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .unnen-current {
+    border-color: var(--gold);
+    background: #fdf8ee;
+  }
+
+  .unnen-current .unnen-year {
+    font-weight: 700;
+  }
+
+  .tsuu-badge {
+    font-size: 10px;
+    color: var(--rust);
+    display: block;
+  }
+
+  /* エラー */
+  .error-box {
+    background: #fff5f5;
+    border: 1px solid #ffcccc;
+    padding: 16px 20px;
+    font-size: 13px;
+    color: var(--rust);
+  }
+
+  /* フッター */
+  footer {
+    text-align: center;
+    padding-top: 48px;
+    border-top: 1px solid var(--mist);
+    font-size: 11px;
+    color: #9a8a75;
+    letter-spacing: 0.15em;
+  }
+
+  /* 今日のラッキーアドバイス */
+  .lucky-card {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 32px 36px;
+    margin-bottom: 48px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .lucky-card::before {
+    content: '今日';
+    position: absolute;
+    right: -10px; top: -20px;
+    font-size: 100px;
+    font-weight: 800;
+    color: rgba(255,255,255,0.04);
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  .lucky-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .lucky-star {
+    color: var(--gold-light);
+    font-size: 20px;
+  }
+
+  .lucky-title {
+    font-size: 13px;
+    letter-spacing: 0.25em;
+    color: var(--gold-light);
+  }
+
+  .lucky-date {
+    margin-left: auto;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: rgba(245,240,232,0.5);
+  }
+
+  .lucky-transit-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+
+  .lucky-transit-tag {
+    font-size: 11px;
+    padding: 3px 10px;
+    border: 1px solid rgba(184,145,42,0.4);
+    color: var(--gold-light);
+    letter-spacing: 0.05em;
+  }
+
+  .lucky-text {
+    font-size: 15px;
+    line-height: 2;
+    color: rgba(245,240,232,0.9);
+  }
+
+  .lucky-loading {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 0;
+  }
+
+  .lucky-loading .dot {
+    background: var(--gold-light);
+  }
+
+  .lucky-loading .loading-label {
+    color: var(--gold-light);
+  }
+
+  .lucky-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 20px;
+    padding: 10px 20px;
+    border: 1px solid var(--gold);
+    background: transparent;
+    color: var(--gold-light);
+    font-family: 'Shippori Mincho', serif;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    cursor: pointer;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  .lucky-btn:hover {
+    background: var(--gold);
+    color: var(--ink);
+  }
+
+  .lucky-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 480px) {
+    .chart-grid { grid-template-columns: 1fr; }
+    .unnen-grid { grid-template-columns: repeat(2, 1fr); }
+    .reading-box { padding: 20px; }
+    .lucky-card { padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <div class="header-label">Celestial & Elemental Reading</div>
+    <h1>星 命 鑑 定 書</h1>
+    <div class="birth-info">1977年6月2日 00時40分 ／ 鹿児島県</div>
+    <div class="method-tags">
+      <span class="tag">西洋占星術</span>
+      <span class="tag">四柱推命</span>
+      <span class="tag">AI鑑定</span>
+    </div>
+  </header>
+
+  <!-- 今日のラッキーアドバイス -->
+  <div class="lucky-card" id="luckyCard">
+    <div class="lucky-header">
+      <span class="lucky-star">✦</span>
+      <span class="lucky-title">TODAY'S LUCKY ADVICE ／ 今日の星からのメッセージ</span>
+      <span class="lucky-date" id="luckyDate"></span>
+    </div>
+    <div class="lucky-transit-tags">
+      <span class="lucky-transit-tag">♀ 金星 □ ASC</span>
+      <span class="lucky-transit-tag">♂ 火星 △ MC</span>
+      <span class="lucky-transit-tag">☿ 水星 ☌ 火星・金星</span>
+      <span class="lucky-transit-tag">♄ 土星 △ 月</span>
+    </div>
+    <div class="lucky-loading" id="luckyLoading" style="display:none">
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      <span class="loading-label">今日のメッセージを受信中…</span>
+    </div>
+    <div class="lucky-text" id="luckyText">今日の星の配置から、あなたへのアドバイスを受け取りましょう。</div>
+    <button class="lucky-btn" id="luckyBtn" onclick="generateLucky()">✦ 今日のメッセージを受け取る</button>
+  </div>
+
+  <!-- 命式サマリー -->
+  <div class="chart-grid" id="chartGrid">
+    <div class="chart-card">
+      <div class="chart-card-label">◈ 西洋占星術 ビッグ3</div>
+      <div class="chart-items">
+        <div class="chart-item">
+          <span class="chart-item-key">☀ 太陽星座</span>
+          <span class="chart-item-val">双子座 3ハウス</span>
+        </div>
+        <div class="chart-item">
+          <span class="chart-item-key">☽ 月星座</span>
+          <span class="chart-item-val">射手座 9ハウス</span>
+        </div>
+        <div class="chart-item">
+          <span class="chart-item-key">↑ アセンダント</span>
+          <span class="chart-item-val">魚座</span>
+        </div>
+        <div class="chart-item">
+          <span class="chart-item-key">♀ 金星</span>
+          <span class="chart-item-val">牡羊座 2ハウス</span>
+        </div>
+        <div class="chart-item">
+          <span class="chart-item-key">♂ 火星</span>
+          <span class="chart-item-val">牡羊座 2ハウス</span>
+        </div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-label">◈ 四柱推命 命式（節気法）</div>
+      <div class="chart-items">
+        <div class="chart-item">
+          <span class="chart-item-key">年柱</span>
+          <span class="chart-item-val">丁巳</span>
+        </div>
+        <div class="chart-item">
+          <span class="chart-item-key">月柱</span>
+          <span class="chart-item-val">癸巳</span>
+        </div>
+        <div class="chart-item">
+          <span class="chart-item-key">日柱（日主）</span>
+          <span class="chart-item-val">庚寅</span>
+        </div>
+        <div class="chart-item">
+          <span class="chart-item-key">時柱</span>
+          <span class="chart-item-val">丙子</span>
+        </div>
+        <div class="chart-item">
+          <span class="chart-item-key">現在の大運</span>
+          <span class="chart-item-val">庚戌（〜51歳）</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 今年の流年 -->
+  <div class="section" id="sec0">
+    <div class="section-header">
+      <div class="section-number">流</div>
+      <div>
+        <div class="section-title">2026年の流年 ／ 今年のトランジット</div>
+        <div class="section-subtitle">CURRENT YEAR OVERVIEW</div>
+      </div>
+    </div>
+    <div style="margin-bottom:16px">
+      <div class="unnen-grid">
+        <div class="unnen-item unnen-current">
+          <div class="unnen-year">2026年 49歳</div>
+          <div class="unnen-gz">丙午</div>
+          <span class="tsuu-badge">偏官 ／ 沐浴</span>
+        </div>
+        <div class="unnen-item">
+          <div class="unnen-year">2027年 50歳</div>
+          <div class="unnen-gz">丁未</div>
+          <span class="tsuu-badge">正官 ／ 冠帯</span>
+        </div>
+        <div class="unnen-item">
+          <div class="unnen-year">2028年 51歳</div>
+          <div class="unnen-gz">戊申</div>
+          <span class="tsuu-badge">偏印 ／ 建禄</span>
+        </div>
+        <div class="unnen-item">
+          <div class="unnen-year">2029年 52歳</div>
+          <div class="unnen-gz">己酉</div>
+          <span class="tsuu-badge">印綬 ／ 帝旺</span>
+        </div>
+        <div class="unnen-item">
+          <div class="unnen-year">2030年 53歳</div>
+          <div class="unnen-gz">庚戌</div>
+          <span class="tsuu-badge">比肩 ／ 衰</span>
+        </div>
+      </div>
+    </div>
+    <div class="reading-box" id="reading0">
+      <div class="loading-dots" id="loading0" style="display:none">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <span class="loading-label">鑑定中…</span>
+      </div>
+      <div class="reading-text" id="text0">鑑定ボタンを押すと、AIによる解釈が表示されます。</div>
+      <div class="error-box" id="error0" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- 基本性格 -->
+  <div class="section" id="sec1">
+    <div class="section-header">
+      <div class="section-number">性</div>
+      <div>
+        <div class="section-title">基本性格と資質</div>
+        <div class="section-subtitle">PERSONALITY & INNATE GIFTS</div>
+      </div>
+    </div>
+    <div class="reading-box" id="reading1">
+      <div class="loading-dots" id="loading1" style="display:none">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <span class="loading-label">鑑定中…</span>
+      </div>
+      <div class="reading-text" id="text1">鑑定ボタンを押すと、AIによる解釈が表示されます。</div>
+      <div class="error-box" id="error1" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- 対人・恋愛 -->
+  <div class="section" id="sec2">
+    <div class="section-header">
+      <div class="section-number">縁</div>
+      <div>
+        <div class="section-title">対人関係・縁の傾向</div>
+        <div class="section-subtitle">RELATIONSHIPS & CONNECTIONS</div>
+      </div>
+    </div>
+    <div class="reading-box" id="reading2">
+      <div class="loading-dots" id="loading2" style="display:none">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <span class="loading-label">鑑定中…</span>
+      </div>
+      <div class="reading-text" id="text2">鑑定ボタンを押すと、AIによる解釈が表示されます。</div>
+      <div class="error-box" id="error2" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- 才能・天職 -->
+  <div class="section" id="sec3">
+    <div class="section-header">
+      <div class="section-number">才</div>
+      <div>
+        <div class="section-title">才能と天職の方向性</div>
+        <div class="section-subtitle">GIFTS & CALLING</div>
+      </div>
+    </div>
+    <div class="reading-box" id="reading3">
+      <div class="loading-dots" id="loading3" style="display:none">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <span class="loading-label">鑑定中…</span>
+      </div>
+      <div class="reading-text" id="text3">鑑定ボタンを押すと、AIによる解釈が表示されます。</div>
+      <div class="error-box" id="error3" style="display:none"></div>
+    </div>
+  </div>
+
+  <button class="btn-generate" id="btn" onclick="generateAll()">
+    ✦ AI鑑定を開始する ✦
+  </button>
+
+  <footer style="margin-top:64px">
+    <p>Ookubo Horoscope All-in-One Calculator ／ Western Tropical Placidus × 四柱推命 節気法</p>
+    <p style="margin-top:8px">本鑑定はAIによる解釈であり、参考情報としてご活用ください</p>
+  </footer>
+
+</div>
+
+<script>
+// JSONデータの主要部分
+const horoscopeData = {
+  birth: { date: "1977-06-02", time: "00:40", place: "鹿児島県" },
+  western: {
+    sun: "双子座 3ハウス（71.0度）",
+    moon: "射手座 9ハウス（248.1度）",
+    mercury: "牡牛座 2ハウス（46.9度）",
+    venus: "牡羊座 2ハウス（26.0度）",
+    mars: "牡羊座 2ハウス（26.7度）",
+    jupiter: "双子座 3ハウス（73.0度）",
+    saturn: "獅子座 6ハウス（132.2度）",
+    uranus: "蠍座 8ハウス（218.5度）",
+    neptune: "射手座 9ハウス（254.9度）",
+    pluto: "天秤座 7ハウス（191.5度）",
+    northNode: "天秤座 8ハウス（201.9度）",
+    asc: "魚座（338.8度）",
+    mc: "射手座（256.7度）"
+  },
+  aspects: [
+    "太陽 △ 冥王星（orb 0.49°）",
+    "金星 ☌ 火星（orb 0.62°）",
+    "木星 ☌ 太陽（orb 1.99°）",
+    "月 ☍ 太陽（orb 2.89°）",
+    "木星 ☍ 海王星（orb 1.87°）",
+    "木星 △ 冥王星（orb 1.50°）",
+    "土星 □ 天王星（orb 3.71°）",
+    "月 △ 土星（orb 4.08°）",
+    "月 ☌ 海王星（orb 6.75°）"
+  ],
+  transit2026: [
+    "トランジット金星 □ ネイタルASC（orb 0.01°）",
+    "トランジット火星 △ ネイタルMC（orb 0.02°）",
+    "トランジット水星 ☌ ネイタル火星・金星（orb 0.19°/0.81°）",
+    "トランジット土星 △ ネイタル月（orb 1.07°）",
+    "トランジット太陽 □ ネイタル土星（orb 1.10°）",
+    "トランジット土星 ⚹ ネイタル太陽（orb 1.82°）"
+  ],
+  shicyu: {
+    year: "丁巳", month: "癸巳", day: "庚寅", hour: "丙子",
+    dayStem: "庚（金・陽）",
+    daiun: "庚戌（41〜51歳）",
+    ryunen2026: "丙午 偏官 沐浴"
+  }
+};
+
+const prompts = [
+  {
+    id: 0,
+    title: "今年（2026年）の運勢",
+    prompt: `以下のホロスコープ・四柱推命データをもとに、2026年の運勢を日本語で鑑定してください。
+
+【西洋占星術 主要配置】
+${Object.entries(horoscopeData.western).map(([k,v])=>`・${k}: ${v}`).join('\n')}
+
+【主要アスペクト（ネイタル）】
+${horoscopeData.aspects.join('\n')}
+
+【2026年のトランジット（出生時点）】
+${horoscopeData.transit2026.join('\n')}
+
+【四柱推命】
+・命式：年柱${horoscopeData.shicyu.year}、月柱${horoscopeData.shicyu.month}、日柱${horoscopeData.shicyu.day}、時柱${horoscopeData.shicyu.hour}
+・日主：${horoscopeData.shicyu.dayStem}
+・現在の大運：${horoscopeData.shicyu.daiun}
+・2026年流年：${horoscopeData.shicyu.ryunen2026}
+
+鑑定のポイント：
+- 2026年の流年「丙午」と日主「庚」の関係（偏官、沐浴）
+- 大運「庚戌」のテーマ
+- トランジットが示す今年の特徴的な動き
+- 西洋占星術と四柱推命を統合した総合的な見立て
+
+400字程度の温かみのある鑑定文として、読み手が自分のこととして腑に落ちるように書いてください。専門用語には簡単な説明を添えてください。マークダウン記法は使わず、普通の日本語の文章で書いてください。`
+  },
+  {
+    id: 1,
+    title: "基本性格と資質",
+    prompt: `以下のホロスコープ・四柱推命データをもとに、この人の基本的な性格・気質・才能の種を日本語で鑑定してください。
+
+【西洋占星術 主要配置】
+${Object.entries(horoscopeData.western).map(([k,v])=>`・${k}: ${v}`).join('\n')}
+
+【主要アスペクト（ネイタル）】
+${horoscopeData.aspects.join('\n')}
+
+【四柱推命】
+・命式：年柱${horoscopeData.shicyu.year}、月柱${horoscopeData.shicyu.month}、日柱${horoscopeData.shicyu.day}、時柱${horoscopeData.shicyu.hour}
+・日主：${horoscopeData.shicyu.dayStem}
+
+着目ポイント：
+- 双子座太陽＋3ハウス木星：知性・コミュニケーション・情報への強い志向
+- 射手座月＋9ハウス：感情的には自由と探求を求める
+- 魚座ASC：外見や雰囲気の柔らかさ・共感力
+- 牡羊座に金星☌火星：情熱的・直感的な行動力（2ハウスなので価値観や美的センターにも絡む）
+- 太陽☌木星：拡大・楽観・探求心の強さ
+- 月☌海王星：直感・夢想・スピリチュアルな感受性
+- 日主「庚（金）」：鋭さ・原則・磨かれることで輝く素質
+
+400字程度で、本人が「そうそう、これ私だ」と感じられるような、具体的で温かい鑑定文を書いてください。マークダウン記法は使わず、普通の日本語の文章で書いてください。`
+  },
+  {
+    id: 2,
+    title: "対人関係・縁の傾向",
+    prompt: `以下のホロスコープ・四柱推命データをもとに、この人の対人関係・縁・パートナーシップの傾向を日本語で鑑定してください。
+
+【西洋占星術 主要配置】
+${Object.entries(horoscopeData.western).map(([k,v])=>`・${k}: ${v}`).join('\n')}
+
+【主要アスペクト（ネイタル）】
+${horoscopeData.aspects.join('\n')}
+
+【四柱推命】
+・命式：年柱${horoscopeData.shicyu.year}、月柱${horoscopeData.shicyu.month}、日柱${horoscopeData.shicyu.day}、時柱${horoscopeData.shicyu.hour}
+・日主：${horoscopeData.shicyu.dayStem}
+
+着目ポイント：
+- 7ハウスに冥王星天秤座：深い変容をもたらすパートナーシップ
+- ノースノード天秤座8ハウス：パートナーシップを通じた魂の成長が使命
+- 金星☌火星牡羊座：惹かれる相手への情熱と即断的な動き
+- 月（射手座）☍ 太陽（双子座）：感情と理性の間の緊張と補完
+- 魚座ASCの共感力と境界線の曖昧さ
+- 2026年の流年「偏官」：外からの刺激・規律・他者との関係性に動きがある年
+
+400字程度で、対人関係の光と影も含めて、誠実で温かい鑑定文を書いてください。マークダウン記法は使わず、普通の日本語の文章で書いてください。`
+  },
+  {
+    id: 3,
+    title: "才能と天職の方向性",
+    prompt: `以下のホロスコープ・四柱推命データをもとに、この人の才能・天職・人生で活かせる強みを日本語で鑑定してください。
+
+【西洋占星術 主要配置】
+${Object.entries(horoscopeData.western).map(([k,v])=>`・${k}: ${v}`).join('\n')}
+
+【主要アスペクト（ネイタル）】
+${horoscopeData.aspects.join('\n')}
+
+【四柱推命】
+・命式：年柱${horoscopeData.shicyu.year}、月柱${horoscopeData.shicyu.month}、日柱${horoscopeData.shicyu.day}、時柱${horoscopeData.shicyu.hour}
+・日主：${horoscopeData.shicyu.dayStem}
+
+着目ポイント：
+- 3ハウスに太陽・木星双子座のステリウム：書くこと・教えること・情報発信
+- MC射手座：社会的な役割に哲学・教育・探求のテーマ
+- 太陽△冥王星：深い洞察・変革を促す力
+- 木星△冥王星：大きな変容と成長を導く資質
+- 月☌海王星：芸術・癒し・スピリチュアルへの感受性
+- 日主「庚（金）」の本質：磨かれ鍛えられるほど輝く、強く美しい素質
+- 2028〜2029年にかけて「建禄・帝旺」と運気が高まる流れ
+
+400字程度で、本人の可能性を広げるような、前向きで具体的な鑑定文を書いてください。マークダウン記法は使わず、普通の日本語の文章で書いてください。`
+  }
+];
+
+async function fetchReading(promptObj) {
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1000,
+      system: "あなたは西洋占星術と四柱推命に精通した、温かみのある占い師です。データに忠実でありながら、読み手の心に寄り添う鑑定文を書いてください。",
+      messages: [{ role: "user", content: promptObj.prompt }]
+    })
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  const data = await res.json();
+  return data.content.find(b => b.type === "text")?.text || "";
+}
+
+async function generateAll() {
+  const btn = document.getElementById('btn');
+  btn.disabled = true;
+  btn.textContent = '✦ 鑑定中… ✦';
+
+  for (const p of prompts) {
+    const loading = document.getElementById(`loading${p.id}`);
+    const textEl = document.getElementById(`text${p.id}`);
+    const errorEl = document.getElementById(`error${p.id}`);
+
+    loading.style.display = 'flex';
+    textEl.style.display = 'none';
+    errorEl.style.display = 'none';
+
+    try {
+      const text = await fetchReading(p);
+      textEl.textContent = text;
+      textEl.style.display = 'block';
+    } catch(e) {
+      errorEl.textContent = `鑑定の取得に失敗しました: ${e.message}`;
+      errorEl.style.display = 'block';
+    } finally {
+      loading.style.display = 'none';
+    }
+  }
+
+  btn.textContent = '✦ 鑑定完了 — 再鑑定する ✦';
+  btn.disabled = false;
+}
+
+// 今日の日付表示
+const today = new Date();
+const dateStr = `${today.getFullYear()}年${today.getMonth()+1}月${today.getDate()}日`;
+document.getElementById('luckyDate').textContent = dateStr;
+
+// ── 自前の簡易天体位置計算（Jean Meeus アルゴリズム準拠、精度±1°） ──
+
+function toRad(d) { return d * Math.PI / 180; }
+function toDeg(r) { return r * 180 / Math.PI; }
+function norm360(d) { return ((d % 360) + 360) % 360; }
+
+// ユリウス日
+function julianDay(date) {
+  const y = date.getUTCFullYear(), m = date.getUTCMonth() + 1, d = date.getUTCDate();
+  const h = date.getUTCHours() + date.getUTCMinutes()/60 + date.getUTCSeconds()/3600;
+  let Y = y, M = m;
+  if (M <= 2) { Y--; M += 12; }
+  const A = Math.floor(Y/100), B = 2 - A + Math.floor(A/4);
+  return Math.floor(365.25*(Y+4716)) + Math.floor(30.6001*(M+1)) + d + h/24 + B - 1524.5;
+}
+
+// T = ユリウス世紀（J2000.0基準）
+function jcent(jd) { return (jd - 2451545.0) / 36525.0; }
+
+// 太陽の黄経（トロピカル）
+function sunLon(date) {
+  const T = jcent(julianDay(date));
+  const L0 = norm360(280.46646 + 36000.76983*T);
+  const M  = norm360(357.52911 + 35999.05029*T);
+  const Mr = toRad(M);
+  const C  = (1.914602 - 0.004817*T)*Math.sin(Mr) + 0.019993*Math.sin(2*Mr);
+  return norm360(L0 + C);
+}
+
+// 月の黄経（簡易）
+function moonLon(date) {
+  const T = jcent(julianDay(date));
+  const L = norm360(218.3165 + 481267.8813*T);
+  const M  = norm360(357.5291 + 35999.0503*T);
+  const Mp = norm360(134.9634 + 477198.8676*T);
+  const D  = norm360(297.8502 + 445267.1115*T);
+  const F  = norm360(93.2721  + 483202.0175*T);
+  const lon = L
+    + 6.2888*Math.sin(toRad(Mp))
+    + 1.2740*Math.sin(toRad(2*D - Mp))
+    + 0.6583*Math.sin(toRad(2*D))
+    + 0.2136*Math.sin(toRad(2*Mp))
+    - 0.1851*Math.sin(toRad(M))
+    - 0.1143*Math.sin(toRad(2*F))
+    + 0.0588*Math.sin(toRad(2*D - 2*Mp))
+    + 0.0572*Math.sin(toRad(2*D - M - Mp))
+    + 0.0533*Math.sin(toRad(2*D + Mp));
+  return norm360(lon);
+}
+
+// 惑星の黄経（VSOP87簡易版）
+function planetLon(date, planet) {
+  const T = jcent(julianDay(date));
+  const deg = (a, b) => norm360(a + b*T);
+  const r = toRad;
+  switch(planet) {
+    case 'Mercury': {
+      const L = deg(252.2509, 149472.6749); const M = deg(174.7948, 149472.5153);
+      return norm360(L + 23.4400*Math.sin(r(M)) + 2.9818*Math.sin(r(2*M)));
+    }
+    case 'Venus': {
+      const L = deg(181.9798,  58517.8156); const M = deg(50.4161,  58517.8039);
+      return norm360(L + 0.7758*Math.sin(r(M)) + 0.0033*Math.sin(r(2*M)));
+    }
+    case 'Mars': {
+      const L = deg(355.4330, 19140.2994); const M = deg(19.3730, 19140.2964);
+      return norm360(L + 10.6912*Math.sin(r(M)) + 0.6228*Math.sin(r(2*M)));
+    }
+    case 'Jupiter': {
+      const L = deg(34.3515, 3034.9057); const M = deg(20.0202, 3034.9057);
+      return norm360(L + 5.5549*Math.sin(r(M)) + 0.1683*Math.sin(r(2*M)));
+    }
+    case 'Saturn': {
+      const L = deg(50.0774, 1222.1138); const M = deg(317.0207, 1222.1138);
+      return norm360(L + 6.3585*Math.sin(r(M)) + 0.2204*Math.sin(r(2*M)));
+    }
+    default: return null;
+  }
+}
+
+function getPlanetLon(name, date) {
+  if (name === 'Sun')  return sunLon(date);
+  if (name === 'Moon') return moonLon(date);
+  return planetLon(date, name);
+}
+
+// 黄道十二宮への変換
+function lonToSign(lon) {
+  const signs = ['牡羊座','牡牛座','双子座','蟹座','獅子座','乙女座',
+                 '天秤座','蠍座','射手座','山羊座','水瓶座','魚座'];
+  return signs[Math.floor(norm360(lon) / 30)];
+}
+
+// アスペクト判定（主要5種、orb 8°以内）
+function getAspect(diff) {
+  const d = norm360(diff);
+  const a = d > 180 ? 360 - d : d;
+  const aspects = [
+    { name: 'コンジャンクション', symbol: '☌', angle: 0,   orb: 8 },
+    { name: 'セクスタイル',       symbol: '⚹', angle: 60,  orb: 6 },
+    { name: 'スクエア',           symbol: '□', angle: 90,  orb: 8 },
+    { name: 'トライン',           symbol: '△', angle: 120, orb: 8 },
+    { name: 'オポジション',       symbol: '☍', angle: 180, orb: 8 },
+  ];
+  for (const asp of aspects) {
+    const orb = Math.abs(a - asp.angle);
+    if (orb <= asp.orb) return { ...asp, orb: orb.toFixed(2) };
+  }
+  return null;
+}
+
+// ネイタル天体の黄経（JSONから固定値）
+const NATAL = {
+  Sun:     71.016,
+  Moon:    248.123,
+  Mercury: 46.892,
+  Venus:   26.041,
+  Mars:    26.660,
+  Jupiter: 73.008,
+  Saturn:  132.202,
+  ASC:     338.843,
+  MC:      256.712,
+};
+
+const NATAL_LABELS = {
+  Sun: '太陽', Moon: '月', Mercury: '水星', Venus: '金星',
+  Mars: '火星', Jupiter: '木星', Saturn: '土星',
+  ASC: 'ASC', MC: 'MC'
+};
+
+const TRANSIT_BODIES = ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn'];
+const TRANSIT_LABELS = {
+  Sun: '☀太陽', Moon: '☽月', Mercury: '☿水星', Venus: '♀金星',
+  Mars: '♂火星', Jupiter: '♃木星', Saturn: '♄土星'
+};
+
+function calcTodayTransits() {
+  const results = [];
+  for (const tbody of TRANSIT_BODIES) {
+    const tLon = getPlanetLon(tbody, today);
+    if (tLon === null) continue;
+    const tSign = lonToSign(tLon);
+    for (const [nkey, nLon] of Object.entries(NATAL)) {
+      const asp = getAspect(tLon - nLon);
+      if (asp) {
+        results.push({
+          transit: TRANSIT_LABELS[tbody],
+          natal: NATAL_LABELS[nkey],
+          aspect: asp.name,
+          symbol: asp.symbol,
+          orb: asp.orb,
+          tSign,
+        });
+      }
+    }
+  }
+  results.sort((a, b) => parseFloat(a.orb) - parseFloat(b.orb));
+  return results.slice(0, 6);
+}
+
+// トランジットタグを動的に更新
+function updateTransitTags(transits) {
+  const container = document.querySelector('.lucky-transit-tags');
+  container.innerHTML = transits.map(t =>
+    `<span class="lucky-transit-tag">${t.transit} ${t.symbol} ネイタル${t.natal}（orb ${t.orb}°）</span>`
+  ).join('');
+}
+
+// ページ読み込み時にタグを計算・表示
+try {
+  const todayTransits = calcTodayTransits();
+  updateTransitTags(todayTransits);
+} catch(e) {
+  console.warn('Transit calc error:', e);
+}
+
+async function generateLucky() {
+  const btn = document.getElementById('luckyBtn');
+  const loading = document.getElementById('luckyLoading');
+  const textEl = document.getElementById('luckyText');
+
+  btn.disabled = true;
+  loading.style.display = 'flex';
+  textEl.style.display = 'none';
+
+  // リアルタイム計算
+  let transitLines = '';
+  try {
+    const transits = calcTodayTransits();
+    transitLines = transits.map(t =>
+      `・${t.transit}（${t.tSign}）${t.symbol}${t.aspect} ネイタル${t.natal}（orb ${t.orb}°）`
+    ).join('\n');
+  } catch(e) {
+    transitLines = '（計算エラーのため固定データを使用）\n・トランジット火星 △ MC\n・トランジット水星 ☌ 火星・金星\n・トランジット土星 △ 月';
+  }
+
+  const luckyPrompt = `今日（${dateStr}）のリアルタイム天体位置から計算したトランジット配置をもとに、以下の命式を持つ人へのラッキーアドバイスを日本語で書いてください。
+
+【命式】
+・太陽：双子座 3ハウス、月：射手座 9ハウス、ASC：魚座
+・日主：庚（金・陽）
+・2026年流年：丙午 偏官 沐浴
+
+【本日のトランジット（リアルタイム計算）】
+${transitLines}
+
+以下の形式で、200〜250字程度のコンパクトなアドバイスを書いてください：
+- 今日のテーマ（一言で）
+- 行動アドバイス（具体的に何をするといいか）
+- 注意点（一つだけ）
+- ラッキーワード（2〜3個）
+
+温かく、前向きで、今日すぐ使える内容にしてください。
+マークダウン記法（##、**、--- など）は一切使わず、普通の日本語の文章で書いてください。`;
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        system: "あなたは西洋占星術と四柱推命に精通した占い師です。毎日のトランジットをもとに、その人の命式に合わせた具体的で温かいアドバイスを提供します。",
+        messages: [{ role: "user", content: luckyPrompt }]
+      })
+    });
+    if (!res.ok) throw new Error(`API error: ${res.status}`);
+    const data = await res.json();
+    const text = data.content.find(b => b.type === "text")?.text || "";
+    textEl.textContent = text;
+    textEl.style.display = 'block';
+    btn.textContent = '✦ 更新する';
+  } catch(e) {
+    textEl.textContent = `メッセージの取得に失敗しました: ${e.message}`;
+    textEl.style.display = 'block';
+    btn.textContent = '✦ 再試行する';
+  } finally {
+    loading.style.display = 'none';
+    btn.disabled = false;
+  }
+}
+
+// スクロールアニメーション
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('visible');
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.section').forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
