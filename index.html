@@ -77,6 +77,14 @@ body {
 .page-date { font-size: 11px; color: var(--text3); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 4px; }
 .page-title { font-family: var(--font-d); font-size: 32px; font-weight: 400; color: var(--text); line-height: 1.1; }
 .page-sub { font-size: 12px; color: var(--text3); margin-top: 4px; }
+.data-btn {
+  position: absolute; top: 52px; right: 22px;
+  width: 34px; height: 34px; border-radius: 10px;
+  background: var(--card); border: 1px solid var(--border);
+  font-size: 16px; color: var(--text2); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.data-btn:active { opacity: 0.7; }
 
 /* ── SECTION ── */
 .section { padding: 20px 22px 0; }
@@ -393,6 +401,13 @@ body {
   font-size: 14px; font-weight: 600; cursor: pointer;
 }
 .sheet-submit:active { opacity: 0.8; }
+.sheet-note { font-size: 12px; color: var(--text3); line-height: 1.6; margin-bottom: 16px; }
+.sheet-secondary {
+  width: 100%; background: var(--bg2); color: var(--text); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px; font-family: var(--font);
+  font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 10px;
+}
+.sheet-secondary:active { opacity: 0.8; }
 
 /* ── Medication ── */
 .med-group { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; }
@@ -587,6 +602,7 @@ body {
 <!-- ══ TASK PAGE ══ -->
 <div class="page active" id="page-task">
   <div class="page-header">
+    <button class="data-btn" aria-label="データ管理">⚙</button>
     <div class="page-date" id="task-date"></div>
     <div class="page-title">Tasks</div>
   </div>
@@ -619,6 +635,7 @@ body {
 <!-- ══ DIARY PAGE ══ -->
 <div class="page" id="page-diary">
   <div class="page-header">
+    <button class="data-btn" aria-label="データ管理">⚙</button>
     <div class="page-date" id="diary-date"></div>
     <div class="page-title">Diary</div>
     <div class="page-sub" id="diary-count">0件の日記</div>
@@ -655,6 +672,7 @@ body {
 <!-- ══ HABIT PAGE ══ -->
 <div class="page" id="page-habit">
   <div class="page-header">
+    <button class="data-btn" aria-label="データ管理">⚙</button>
     <div class="page-date" id="habit-date"></div>
     <div class="page-title">Habits</div>
   </div>
@@ -739,6 +757,7 @@ body {
 <!-- ══ WEEKLY PLANNER PAGE ══ -->
 <div class="page" id="page-week">
   <div class="page-header">
+    <button class="data-btn" aria-label="データ管理">⚙</button>
     <div class="page-date" id="week-date"></div>
     <div class="page-title">Planner</div>
   </div>
@@ -823,6 +842,16 @@ body {
 </div>
 
 <!-- Toast -->
+<!-- Data Export / Import Sheet -->
+<div class="sheet" id="data-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">データ管理</div>
+  <div class="sheet-note">タスク・日記・習慣・お薬・気力・体重・予定のデータをファイルに書き出したり、書き出したファイルから復元したりできます。インポートすると現在のデータは上書きされます。</div>
+  <button class="sheet-submit" id="data-export-btn">エクスポート（書き出し）</button>
+  <button class="sheet-secondary" id="data-import-btn">インポート（読み込み）</button>
+  <input type="file" id="data-import-file" accept="application/json,.json" style="display:none;">
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1738,7 +1767,90 @@ function hideSheet(id) {
 }
 
 document.getElementById('overlay').addEventListener('click', () => {
-  ['habit-sheet','med-sheet'].forEach(id => hideSheet(id));
+  ['habit-sheet','med-sheet','data-sheet'].forEach(id => hideSheet(id));
+});
+
+// ══════════════════════════════════════════
+// DATA EXPORT / IMPORT
+// ══════════════════════════════════════════
+const DATA_KEYS = ['tasks','diary','diary-migrated','memos','habits','habit-checks',
+  'meds','med-checks','med-history','weight-log','vitality-log','plans'];
+const DATA_PREFIXES = ['med-memo-'];
+
+function isDataKey(k) {
+  return DATA_KEYS.includes(k) || DATA_PREFIXES.some(p => k.startsWith(p));
+}
+function allDataKeys() {
+  const keys = [];
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (isDataKey(k)) keys.push(k);
+    }
+  } catch {}
+  return keys;
+}
+
+async function exportData() {
+  const data = {};
+  allDataKeys().forEach(k => { data[k] = store.get(k); });
+  const payload = { app: 'myspace', version: 1, exportedAt: new Date().toISOString(), data };
+  const json = JSON.stringify(payload, null, 2);
+  const name = `myspace-backup-${todayKey()}.json`;
+  const file = new File([json], name, { type: 'application/json' });
+
+  // ホーム画面アプリ（iOS など）ではダウンロードが効かないことがあるため共有シートを優先
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: name });
+      showToast('エクスポートしました');
+      return;
+    } catch (e) {
+      if (e.name === 'AbortError') return;
+    }
+  }
+  const url = URL.createObjectURL(file);
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showToast('エクスポートしました');
+}
+
+function importData(text) {
+  let payload;
+  try { payload = JSON.parse(text); } catch { showToast('ファイルを読み込めませんでした'); return; }
+  if (!payload || payload.app !== 'myspace' || typeof payload.data !== 'object' || !payload.data) {
+    showToast('My Space のバックアップファイルではありません'); return;
+  }
+  const entries = Object.entries(payload.data).filter(([k]) => isDataKey(k));
+  if (!entries.length) { showToast('復元できるデータがありません'); return; }
+  const when = payload.exportedAt ? new Date(payload.exportedAt).toLocaleString('ja-JP') : '不明';
+  if (!confirm(`${when} に書き出したデータを読み込みます。\n現在のデータはすべて上書きされます。よろしいですか？`)) return;
+  try {
+    allDataKeys().forEach(k => localStorage.removeItem(k));
+    entries.forEach(([k, v]) => localStorage.setItem(k, JSON.stringify(v)));
+  } catch {
+    showToast('保存に失敗しました'); return;
+  }
+  location.reload();
+}
+
+document.querySelectorAll('.data-btn').forEach(btn => {
+  btn.addEventListener('click', () => showSheet('data-sheet'));
+});
+document.getElementById('data-export-btn').addEventListener('click', exportData);
+document.getElementById('data-import-btn').addEventListener('click', () => {
+  document.getElementById('data-import-file').click();
+});
+document.getElementById('data-import-file').addEventListener('change', function() {
+  const f = this.files && this.files[0];
+  this.value = '';
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = () => importData(reader.result);
+  reader.onerror = () => showToast('ファイルを読み込めませんでした');
+  reader.readAsText(f);
 });
 </script>
 </body>
